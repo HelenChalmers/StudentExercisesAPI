@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,11 +15,11 @@ namespace StudentExercisesAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StudentsController : ControllerBase
+    public class InstructorsController : ControllerBase
     {
         private readonly IConfiguration _config;
 
-        public StudentsController(IConfiguration config)
+        public InstructorsController(IConfiguration config)
         {
             _config = config;
         }
@@ -31,30 +32,40 @@ namespace StudentExercisesAPI.Controllers
             }
         }
 
-        // GET api/students?q=Taco
+        /*
+         public int Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string SlackHandle { get; set; }
+        public string Specialty { get; set; }
+        public Cohort Cohort { get; set; }
+        */
+
+        // GET api/Instructor?q=Taco
         [HttpGet]
         public async Task<IActionResult> Get(string q)
         {
             string sql = @"
             SELECT
-                s.Id,
-                s.FirstName,
-                s.LastName,
-                s.SlackHandle,
-                s.CohortId,
-                c.Id,
-                c.Name
-            FROM Student s
-            JOIN Cohort c ON s.CohortId = c.Id
+                i.Id,
+                i.FirstName,
+                i.LastName,
+                i.SlackHandle,
+                i.Specialty
+                i.CohortId
+                
+                
+            FROM Instructor i
+            JOIN Cohort c ON i.CohortId = c.Id
             WHERE 1=1
             ";
 
             if (q != null)
             {
                 string isQ = $@"
-                    AND s.FirstName LIKE '%{q}%'
-                    OR s.LastName LIKE '%{q}%'
-                    OR s.SlackHandle LIKE '%{q}%'
+                    AND i.FirstName LIKE '%{q}%'
+                    OR i.LastName LIKE '%{q}%'
+                    OR i.SlackHandle LIKE '%{q}%'
                 ";
                 sql = $"{sql} {isQ}";
             }
@@ -64,31 +75,31 @@ namespace StudentExercisesAPI.Controllers
             using (IDbConnection conn = Connection)
             {
 
-                IEnumerable<Student> students = await conn.QueryAsync<Student, Cohort, Student>(
+                IEnumerable<Instructor> instructors = await conn.QueryAsync<Instructor, Cohort, Instructor>(
                     sql,
-                    (student, cohort) =>
+                    (instructors, cohort) =>
                     {
-                        student.Cohort = cohort;
-                        return student;
+                        instructors.Cohort = cohort;
+                        return instructors;
                     }
                 );
-                return Ok(students);
+                return Ok(instructors);
             }
         }
 
-        // GET api/students/5
-        [HttpGet("{id}", Name = "GetStudent")]
+        // GET api/instructors/5
+        [HttpGet("{id}", Name = "GetInstructors")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
-                s.Id,
-                s.FirstName,
-                s.LastName,
-                s.SlackHandle,
-                s.CohortId
-            FROM Student s
-            WHERE s.Id = {id}
+                i.Id,
+                i.FirstName,
+                i.LastName,
+                i.SlackHandle,
+                i.CohortId
+            FROM Instructors i
+            WHERE i.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
@@ -186,3 +197,5 @@ namespace StudentExercisesAPI.Controllers
     }
 
 }
+
+

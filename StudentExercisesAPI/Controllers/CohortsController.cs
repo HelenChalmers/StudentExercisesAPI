@@ -65,6 +65,147 @@ namespace StudentExercisesAPI.Controllers
                 return Ok(cohorts);
             }
         }
+
+        [HttpGet("{id}", Name = "GetCohort")]
+        public async Task<IActionResult> Get([FromRoute]int id)
+        {
+            string sql = $@"
+            SELECT
+                c.Id,
+                c.Name
+            FROM Cohort c
+            WHERE c.Id = {id}
+            ";
+
+            using (IDbConnection conn = Connection)
+            {
+                IEnumerable<Cohort> cohorts = await conn.QueryAsync<Cohort>(sql);
+                return Ok(cohorts);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] Cohort cohort)
+        {
+            string sql = $@"INSERT INTO Cohort 
+            (Name)
+            VALUES
+            (
+                '{cohort.Name}'
+                
+            );
+            SELECT SCOPE_IDENTITY();";
+
+            using (IDbConnection conn = Connection)
+            {
+                var newId = (await conn.QueryAsync<int>(sql)).Single();
+                cohort.Id = newId;
+                return CreatedAtRoute("GetCohort", new { id = newId }, cohort);
+            }
+        }
+
+        // PUT api/cohorts/5
+        /*
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] Cohort cohort)
+        {
+            string sql = $@"
+            UPDATE Cohort
+            SET Name = '{cohort.Name}',
+            WHERE Id = {id}";
+
+            try
+            {
+                using (IDbConnection conn = Connection)
+                {
+                    int rowsAffected = await conn.ExecuteAsync(sql);
+                    if (rowsAffected > 0)
+                    {
+                        return new StatusCodeResult(StatusCodes.Status204NoContent);
+                    }
+                    throw new Exception("No rows affected");
+                }
+            }
+            catch (Exception)
+            {
+                if (!CohortExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private bool CohortExists(int id)
+        {
+            string sql = $"SELECT Id FROM Cohort WHERE Id = {id}";
+            using (IDbConnection conn = Connection)
+            {
+                return conn.Query<Cohort>(sql).Count() > 0;
+            }
+        }
+        */
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] Cohort cohort)
+        {
+            string sql = $@"
+            UPDATE Cohort
+            SET Name = '{cohort.Name}'
+            WHERE Id = {id}";
+
+            try
+            {
+                using (IDbConnection conn = Connection)
+                {
+                    int rowsAffected = await conn.ExecuteAsync(sql);
+                    if (rowsAffected > 0)
+                    {
+                        return new StatusCodeResult(StatusCodes.Status204NoContent);
+                    }
+                    throw new Exception("No rows affected");
+                }
+            }
+            catch (Exception)
+            {
+                if (!CohortExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+        private bool CohortExists(int id)
+        {
+            string sql = $"SELECT Id FROM Cohort WHERE Id = {id}";
+            using (IDbConnection conn = Connection)
+            {
+                return conn.Query<Cohort>(sql).Count() > 0;
+            }
+        }
+
+        // DELETE api/cohort/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            string sql = $@"DELETE FROM Cohort WHERE Id = {id}";
+
+            using (IDbConnection conn = Connection)
+            {
+                int rowsAffected = await conn.ExecuteAsync(sql);
+                if (rowsAffected > 0)
+                {
+                    return new StatusCodeResult(StatusCodes.Status204NoContent);
+                }
+                throw new Exception("No rows affected");
+            }
+
+        }
     }
 }
 
